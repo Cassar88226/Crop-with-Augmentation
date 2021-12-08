@@ -183,9 +183,16 @@ class Pipeline(object):
                               % abs_output_directory)
         for augmentor_image in self.augmentor_images:
             try:
-                with Image.open(augmentor_image.image_path) as opened_image:
-                    self.distinct_dimensions.add(opened_image.size)
-                    self.distinct_formats.add(opened_image.format)
+                if augmentor_image.file_format != "npy":
+                    with Image.open(augmentor_image.image_path) as opened_image:
+                        self.distinct_dimensions.add(opened_image.size)
+                        self.distinct_formats.add(opened_image.format)
+                else:
+                    img_array = np.load(augmentor_image.image_path)
+                    img_array = np.squeeze(img_array, axis=2)
+                    opened_image = Image.fromarray((img_array).astype(np.uint8))
+                self.distinct_dimensions.add(opened_image.size)
+                self.distinct_formats.add(opened_image.format)
             except IOError as e:
                 print("There is a problem with image %s in your source directory: %s"
                       % (augmentor_image.image_path, e.message))
@@ -214,7 +221,16 @@ class Pipeline(object):
         images = []
 
         if augmentor_image.image_path is not None:
-            images.append(Image.open(augmentor_image.image_path))
+            if augmentor_image.file_format != "npy":
+                images.append(Image.open(augmentor_image.image_path))
+            else:
+                img_array = np.load(augmentor_image.image_path)
+                img_shape = img_array.shape
+                data = np.frombuffer(img_array, dtype=np.uint8)
+                depth = int(len(data) / (img_shape[0]*  img_shape[1]))
+                new_data = np.reshape(data, (img_shape[0], img_shape[1], depth))
+                opened_image = Image.fromarray((new_data))
+                images.append(opened_image)
 
         # What if they are array data?
         if augmentor_image.pil_images is not None:
@@ -246,8 +262,13 @@ class Pipeline(object):
                                     + str(count) \
                                     + "." \
                                     + (self.save_format if self.save_format else augmentor_image.file_format)
-
-                        images[i].save(os.path.join(augmentor_image.output_directory, save_name))
+                        if augmentor_image.file_format != "npy":
+                            images[i].save(os.path.join(augmentor_image.output_directory, save_name))
+                        else:
+                            im_data = np.asarray(images[i])
+                            data = np.frombuffer(im_data, dtype=np.float32)
+                            data = np.reshape(data, (images[i].size[1], images[i].size[0], 1))
+                            np.save(os.path.join(augmentor_image.output_directory, save_name), data)
 
                     else:
                         save_name = "_groundtruth_(" \
@@ -260,8 +281,15 @@ class Pipeline(object):
                                     + file_name \
                                     + "." \
                                     + (self.save_format if self.save_format else augmentor_image.file_format)
+                        if augmentor_image.file_format != "npy":
+                            images[i].save(os.path.join(augmentor_image.output_directory, save_name))
+                        else:
+                            im_data = np.asarray(images[i])
+                            data = np.frombuffer(im_data, dtype=np.float32)
+                            data = np.reshape(data, (images[i].size[1], images[i].size[0], 1))
+                            np.save(os.path.join(augmentor_image.output_directory, save_name), data)
 
-                        images[i].save(os.path.join(augmentor_image.output_directory, save_name))
+                        # images[i].save(os.path.join(augmentor_image.output_directory, save_name))
 
             except IOError as e:
                 print("Error writing %s, %s. Change save_format to PNG?" % (file_name, e.message))

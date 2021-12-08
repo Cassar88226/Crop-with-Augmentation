@@ -337,7 +337,7 @@ def scan_directory(source_directory):
     :return: A list of images found in the :attr:`source_directory`
     """
     # TODO: GIFs are highly problematic. It may make sense to drop GIF support.
-    file_types = ['*.jpg', '*.bmp', '*.jpeg', '*.gif', '*.img', '*.png', '*.tiff', '*.tif']
+    file_types = ['*.jpg', '*.bmp', '*.jpeg', '*.gif', '*.img', '*.png', '*.tiff', '*.tif', '*.npy']
 
     list_of_files = []
 
