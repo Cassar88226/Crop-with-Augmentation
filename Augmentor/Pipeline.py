@@ -225,11 +225,13 @@ class Pipeline(object):
                 images.append(Image.open(augmentor_image.image_path))
             else:
                 img_array = np.load(augmentor_image.image_path)
+                augmentor_image.image_type = img_array.dtype
                 img_shape = img_array.shape
-                data = np.frombuffer(img_array, dtype=np.uint8)
-                depth = int(len(data) / (img_shape[0]*  img_shape[1]))
-                new_data = np.reshape(data, (img_shape[0], img_shape[1], depth))
-                opened_image = Image.fromarray((new_data))
+                formatted = (img_array * 255 / np.max(img_array)).astype('uint8')
+                if len(img_shape) > 2:
+                    formatted = np.squeeze(formatted, axis=2)
+                    augmentor_image.depth = img_shape[2]
+                opened_image = Image.fromarray(formatted)
                 images.append(opened_image)
 
         # What if they are array data?
@@ -265,9 +267,15 @@ class Pipeline(object):
                         if augmentor_image.file_format != "npy":
                             images[i].save(os.path.join(augmentor_image.output_directory, save_name))
                         else:
-                            im_data = np.asarray(images[i])
-                            data = np.frombuffer(im_data, dtype=np.float32)
-                            data = np.reshape(data, (images[i].size[1], images[i].size[0], 1))
+                            im_data = np.asarray(images[i]) / 255
+                            if augmentor_image.image_type == "float32":
+                                im_data = np.float32(im_data)
+                            elif augmentor_image.image_type == "float64":
+                                im_data = np.float64(im_data)
+                            else:
+                                im_data = np.uint8(im_data)
+                            if augmentor_image.depth is not None:
+                                data = np.reshape(im_data, (images[i].size[1], images[i].size[0], augmentor_image.depth))
                             np.save(os.path.join(augmentor_image.output_directory, save_name), data)
 
                     else:
@@ -284,9 +292,10 @@ class Pipeline(object):
                         if augmentor_image.file_format != "npy":
                             images[i].save(os.path.join(augmentor_image.output_directory, save_name))
                         else:
-                            im_data = np.asarray(images[i])
-                            data = np.frombuffer(im_data, dtype=np.float32)
-                            data = np.reshape(data, (images[i].size[1], images[i].size[0], 1))
+                            im_data = np.asarray(images[i]) / 255
+                            im_data = np.float32(im_data)
+                            if augmentor_image.depth is not None:
+                                data = np.reshape(data, (images[i].size[1], images[i].size[0], augmentor_image.depth))
                             np.save(os.path.join(augmentor_image.output_directory, save_name), data)
 
                         # images[i].save(os.path.join(augmentor_image.output_directory, save_name))

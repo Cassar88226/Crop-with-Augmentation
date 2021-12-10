@@ -64,6 +64,10 @@ class AugmentorImage(object):
         self._label = None
         self._label_pair = None
         self._categorical_label = None
+        self._depth = None
+        self._min_value = None
+        self._max_value = None
+        self._image_type = None
 
         if pil_images is not None:
             self._pil_images = pil_images
@@ -85,6 +89,15 @@ class AugmentorImage(object):
         Class label: %s
         Numerical class label (auto assigned): %s
         """ % (self._image_path, self._ground_truth, self._file_format, self._class_label, self._class_label_int)
+
+
+    @property
+    def image_type(self):
+        return self._image_type
+
+    @image_type.setter
+    def image_type(self, value):
+        self._image_type = value
 
     @property
     def pil_images(self):
@@ -157,6 +170,28 @@ class AugmentorImage(object):
         :type: String
         """
         return os.path.basename(self._image_path)
+    @property
+    def depth(self):
+        return self._depth
+    @depth.setter
+    def depth(self, value):
+        self._depth = value
+
+    @property
+    def min_value(self):
+        return self._min_value
+    
+    @min_value.setter
+    def min_value(self, value):
+        self._min_value = value
+
+    @property
+    def max_value(self):
+        return self._max_value
+    
+    @max_value.setter
+    def max_value(self, value):
+        self._max_value = value
 
     @property
     def class_label(self):
