@@ -189,7 +189,8 @@ class Pipeline(object):
                         self.distinct_formats.add(opened_image.format)
                 else:
                     img_array = np.load(augmentor_image.image_path)
-                    img_array = np.squeeze(img_array, axis=2)
+                    if len(img_array.shape) > 2:
+                        img_array = np.squeeze(img_array, axis=2)
                     opened_image = Image.fromarray((img_array).astype(np.uint8))
                 self.distinct_dimensions.add(opened_image.size)
                 self.distinct_formats.add(opened_image.format)
@@ -275,8 +276,8 @@ class Pipeline(object):
                             else:
                                 im_data = np.uint8(im_data)
                             if augmentor_image.depth is not None:
-                                data = np.reshape(im_data, (images[i].size[1], images[i].size[0], augmentor_image.depth))
-                            np.save(os.path.join(augmentor_image.output_directory, save_name), data)
+                                im_data = np.reshape(im_data, (images[i].size[1], images[i].size[0], augmentor_image.depth))
+                            np.save(os.path.join(augmentor_image.output_directory, save_name), im_data)
 
                     else:
                         save_name = "_groundtruth_(" \
