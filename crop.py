@@ -48,10 +48,13 @@ class PillImage(object):
         bbox = img.convert('RGB').getbbox()
         return bbox
     def crop(self, bbox):
+        cropped = None
         if self.file_format != "npy":
-            return self.image.crop(bbox)
+            cropped = self.image.crop(bbox)
+            return cropped, self.file_format, cropped.width * cropped.height
         else:
-            return self.image[bbox[1]: bbox[3], bbox[0] : bbox[2]]
+            cropped = self.image[bbox[1]: bbox[3], bbox[0] : bbox[2]]
+            return cropped, self.file_format, cropped.size
             
     def save_image(self, image, save_path):
         if self.file_format == "npy":
@@ -61,14 +64,15 @@ class PillImage(object):
         else:
             image.save(save_path)
 
-def crop_self(image, raw_type=False):
-    if not raw_type:
+def crop_self(image, file_format):
+    r_image = image.copy()
+    if file_format == "npy":
         formatted = ((image - np.min(image)) * 255 / (np.max(image) - np.min(image))).astype('uint8')
         r_image = Image.fromarray(formatted)
     bbox = r_image.convert('RGB').getbbox()
     if bbox is None:
         return None
-    if raw_type:
+    if file_format != "npy":
         return image.crop(bbox)
     else:
         return image[bbox[1] + 1: bbox[3] - 1, bbox[0] + 1 : bbox[2] - 1]
@@ -87,13 +91,14 @@ def crop_dir_images(index, dir, bbox):
         pil_img = PillImage(os.path.join(image_dir, basename))
         img, size = pil_img.get_image(raw_type=True)
         if valid_bbox(size, bbox):
-            cropped_img = pil_img.crop(bbox)
-            cropped_img = crop_self(cropped_img)
-            if cropped_img is not None:
-                save_dir = os.path.join(dir, crop_dir)
-                if not os.path.exists(save_dir):
-                    os.mkdir(save_dir)
-                pil_img.save_image(cropped_img, os.path.join(save_dir, basename))
+            cropped_img, file_format, size = pil_img.crop(bbox)
+            if size > 0:
+                cropped_img = crop_self(cropped_img, file_format)
+                if cropped_img is not None:
+                    save_dir = os.path.join(dir, crop_dir)
+                    if not os.path.exists(save_dir):
+                        os.mkdir(save_dir)
+                    pil_img.save_image(cropped_img, os.path.join(save_dir, basename))
 # get list of image files
 list_of_mask_files = []
 
