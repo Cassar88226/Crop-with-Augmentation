@@ -372,7 +372,7 @@ class RandomContrast(Operation):
     """
     This class is used to random change contrast of an image.
     """
-    def __init__(self, probability, min_factor,max_factor):
+    def __init__(self, probability, factor):
         """
         required :attr:`probability` parameter
 
@@ -392,8 +392,7 @@ class RandomContrast(Operation):
         :type max_factor: Float
         """
         Operation.__init__(self, probability)
-        self.min_factor = min_factor
-        self.max_factor = max_factor
+        self.factor = factor
 
     def perform_operation(self, images):
         """
@@ -404,12 +403,12 @@ class RandomContrast(Operation):
         :return: The transformed image(s) as a list of object(s) of type
          PIL.Image.
         """
-        factor = np.random.uniform(self.min_factor, self.max_factor)
+        # factor = np.random.uniform(self.min_factor, self.max_factor)
 
         def do(image):
 
             image_enhancer_contrast = ImageEnhance.Contrast(image)
-            return image_enhancer_contrast.enhance(factor)
+            return image_enhancer_contrast.enhance(self.factor)
 
         augmented_images = []
 
@@ -417,7 +416,6 @@ class RandomContrast(Operation):
             augmented_images.append(do(image))
 
         return augmented_images
-
 
 class Skew(Operation):
     """
@@ -675,7 +673,28 @@ class RotateStandard(Operation):
 
         return augmented_images
 
+class Translation(Operation):
+    def __init__(self, probability, x_shift, y_shift):
+        super().__init__(probability)
+        self.x_shift = x_shift
+        self.y_shift = y_shift
+    def perform_operation(self, images):
+        def do(image):
+            a = 1
+            b = 0
+            c = self.x_shift * image.width
+            d = 0
+            e = 1
+            f = self.y_shift * image.height
 
+            return image.transform(image.size, Image.AFFINE, (a, b, c, d, e, f), fillcolor="black")
+
+        augmented_images = []
+
+        for image in images:
+            augmented_images.append(do(image))
+
+        return augmented_images
 class Rotate(Operation):
     """
     This class is used to perform rotations on images in multiples of 90
@@ -1352,18 +1371,18 @@ class Scale(Operation):
         return augmented_images
 
 
-class Distort(Operation):
+class Deform(Operation):
     """
-    This class performs randomised, elastic distortions on images.
+    This class performs randomised, elastic deformations on images.
     """
     def __init__(self, probability, grid_width, grid_height, magnitude):
         """
-        As well as the probability, the granularity of the distortions
+        As well as the probability, the granularity of the deformations
         produced by this class can be controlled using the width and
-        height of the overlaying distortion grid. The larger the height
-        and width of the grid, the smaller the distortions. This means
-        that larger grid sizes can result in finer, less severe distortions.
-        As well as this, the magnitude of the distortions vectors can
+        height of the overlaying deformation grid. The larger the height
+        and width of the grid, the smaller the deformations. This means
+        that larger grid sizes can result in finer, less severe deformations.
+        As well as this, the magnitude of the deformations vectors can
         also be adjusted.
 
         :param probability: Controls the probability that the operation is
@@ -1372,8 +1391,8 @@ class Distort(Operation):
          by the class to apply the transformations to the image.
         :param grid_height: The height of the gird overlay, which is used
          by the class to apply the transformations to the image.
-        :param magnitude: Controls the degree to which each distortion is
-         applied to the overlaying distortion grid.
+        :param magnitude: Controls the degree to which each deformation is
+         applied to the overlaying deformation grid.
         :type probability: Float
         :type grid_width: Integer
         :type grid_height: Integer
@@ -1388,10 +1407,10 @@ class Distort(Operation):
 
     def perform_operation(self, images):
         """
-        Distorts the passed image(s) according to the parameters supplied during
-        instantiation, returning the newly distorted image.
+        Deforms the passed image(s) according to the parameters supplied during
+        instantiation, returning the newly deformed image.
 
-        :param images: The image(s) to be distorted.
+        :param images: The image(s) to be deformed.
         :type images: List containing PIL.Image object(s).
         :return: The transformed image(s) as a list of object(s) of type
          PIL.Image.
@@ -1496,18 +1515,18 @@ class Distort(Operation):
         return augmented_images
 
 
-class GaussianDistortion(Operation):
+class GaussianDeformation(Operation):
     """
-    This class performs randomised, elastic gaussian distortions on images.
+    This class performs randomised, elastic gaussian deformations on images.
     """
     def __init__(self, probability, grid_width, grid_height, magnitude, corner, method, mex, mey, sdx, sdy):
         """
-        As well as the probability, the granularity of the distortions
+        As well as the probability, the granularity of the deformations
         produced by this class can be controlled using the width and
-        height of the overlaying distortion grid. The larger the height
-        and width of the grid, the smaller the distortions. This means
-        that larger grid sizes can result in finer, less severe distortions.
-        As well as this, the magnitude of the distortions vectors can
+        height of the overlaying deformation grid. The larger the height
+        and width of the grid, the smaller the deformations. This means
+        that larger grid sizes can result in finer, less severe deformations.
+        As well as this, the magnitude of the deformations vectors can
         also be adjusted.
 
         :param probability: Controls the probability that the operation is
@@ -1516,20 +1535,20 @@ class GaussianDistortion(Operation):
          by the class to apply the transformations to the image.
         :param grid_height: The height of the gird overlay, which is used
          by the class to apply the transformations to the image.
-        :param magnitude: Controls the degree to which each distortion is
-         applied to the overlaying distortion grid.
+        :param magnitude: Controls the degree to which each deformation is
+         applied to the overlaying deformation grid.
         :param corner: which corner of picture to distort.
          Possible values: "bell"(circular surface applied), "ul"(upper left),
          "ur"(upper right), "dl"(down left), "dr"(down right).
         :param method: possible values: "in"(apply max magnitude to the chosen
          corner), "out"(inverse of method in).
-        :param mex: used to generate 3d surface for similar distortions.
+        :param mex: used to generate 3d surface for similar deformations.
          Surface is based on normal distribution.
-        :param mey: used to generate 3d surface for similar distortions.
+        :param mey: used to generate 3d surface for similar deformations.
          Surface is based on normal distribution.
-        :param sdx: used to generate 3d surface for similar distortions.
+        :param sdx: used to generate 3d surface for similar deformations.
          Surface is based on normal distribution.
-        :param sdy: used to generate 3d surface for similar distortions.
+        :param sdy: used to generate 3d surface for similar deformations.
          Surface is based on normal distribution.
         :type probability: Float
         :type grid_width: Integer
@@ -1563,10 +1582,10 @@ class GaussianDistortion(Operation):
 
     def perform_operation(self, images):
         """
-        Distorts the passed image(s) according to the parameters supplied
-        during instantiation, returning the newly distorted image.
+        Deforms the passed image(s) according to the parameters supplied
+        during instantiation, returning the newly deformed image.
 
-        :param images: The image(s) to be distorted.
+        :param images: The image(s) to be deformed.
         :type images: List containing PIL.Image object(s).
         :return: The transformed image(s) as a list of object(s) of type
          PIL.Image.
@@ -1695,7 +1714,31 @@ class GaussianDistortion(Operation):
 
         return augmented_images
 
+class Stretch(Operation):
+    def __init__(self, probability, x_factor, y_factor):
+        Operation.__init__(self, probability)
+        self.x_factor = x_factor
+        self.y_factor = y_factor
+    
+    def perform_operation(self, images):
+        def do(image):
+            w, h = image.size
 
+            image_zoomed = image.resize((int(round(image.size[0] * self.x_factor)),
+                                         int(round(image.size[1] * self.y_factor))),
+                                         resample=Image.BICUBIC)
+            w_zoomed, h_zoomed = image_zoomed.size
+            offset = (round((w - w_zoomed) / 2), round((h - h_zoomed) / 2))
+            background = Image.new(image.mode, (w, h), "black")
+            background.paste(image_zoomed, offset)
+            
+            return background
+        augmented_images = []
+
+        for image in images:
+            augmented_images.append(do(image))
+
+        return augmented_images
 class Zoom(Operation):
     """
     This class is used to enlarge images (to zoom) but to return a cropped

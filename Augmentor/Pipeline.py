@@ -1083,15 +1083,15 @@ class Pipeline(object):
         else:
             self.add_operation(Flip(probability=probability, top_bottom_left_right="RANDOM"))
 
-    def random_distortion(self, probability, grid_width, grid_height, magnitude):
+    def elastic_deformation(self, probability, grid_width, grid_height, magnitude):
         """
-        Performs a random, elastic distortion on an image.
+        Performs a random, elastic deformation on an image.
 
-        This function performs a randomised, elastic distortion controlled
+        This function performs a randomised, elastic deformation controlled
         by the parameters specified. The grid width and height controls how
-        fine the distortions are. Smaller sizes will result in larger, more
-        pronounced, and less granular distortions. Larger numbers will result
-        in finer, more granular distortions. The magnitude of the distortions
+        fine the deformations are. Smaller sizes will result in larger, more
+        pronounced, and less granular deformations. Larger numbers will result
+        in finer, more granular deformations. The magnitude of the deformations
         can be controlled using magnitude. This can be random or fixed.
 
         *Good* values for parameters are between 2 and 10 for the grid
@@ -1105,7 +1105,7 @@ class Pipeline(object):
          axis.
         :param grid_height: The number of rectangles in the grid's vertical
          axis.
-        :param magnitude: The magnitude of the distortions.
+        :param magnitude: The magnitude of the deformations.
         :type probability: Float
         :type grid_width: Integer
         :type grid_height: Integer
@@ -1115,19 +1115,19 @@ class Pipeline(object):
         if not 0 < probability <= 1:
             raise ValueError(Pipeline._probability_error_text)
         else:
-            self.add_operation(Distort(probability=probability, grid_width=grid_width,
+            self.add_operation(Deform(probability=probability, grid_width=grid_width,
                                        grid_height=grid_height, magnitude=magnitude))
 
-    def gaussian_distortion(self, probability, grid_width, grid_height, magnitude, corner, method, mex=0.5, mey=0.5,
+    def gaussian_deformation(self, probability, grid_width, grid_height, magnitude, corner, method, mex=0.5, mey=0.5,
                             sdx=0.05, sdy=0.05):
         """
-        Performs a random, elastic gaussian distortion on an image.
+        Performs a random, elastic gaussian deformation on an image.
 
-        This function performs a randomised, elastic gaussian distortion controlled
+        This function performs a randomised, elastic gaussian deformation controlled
         by the parameters specified. The grid width and height controls how
-        fine the distortions are. Smaller sizes will result in larger, more
-        pronounced, and less granular distortions. Larger numbers will result
-        in finer, more granular distortions. The magnitude of the distortions
+        fine the deformations are. Smaller sizes will result in larger, more
+        pronounced, and less granular deformations. Larger numbers will result
+        in finer, more granular deformations. The magnitude of the deformations
         can be controlled using magnitude. This can be random or fixed.
 
         *Good* values for parameters are between 2 and 10 for the grid
@@ -1141,19 +1141,19 @@ class Pipeline(object):
          axis.
         :param grid_height: The number of rectangles in the grid's vertical
          axis.
-        :param magnitude: The magnitude of the distortions.
+        :param magnitude: The magnitude of the deformations.
         :param corner: which corner of picture to distort.
          Possible values: "bell"(circular surface applied), "ul"(upper left),
          "ur"(upper right), "dl"(down left), "dr"(down right).
         :param method: possible values: "in"(apply max magnitude to the chosen
          corner), "out"(inverse of method in).
-        :param mex: used to generate 3d surface for similar distortions.
+        :param mex: used to generate 3d surface for similar deformations.
          Surface is based on normal distribution.
-        :param mey: used to generate 3d surface for similar distortions.
+        :param mey: used to generate 3d surface for similar deformations.
          Surface is based on normal distribution.
-        :param sdx: used to generate 3d surface for similar distortions.
+        :param sdx: used to generate 3d surface for similar deformations.
          Surface is based on normal distribution.
-        :param sdy: used to generate 3d surface for similar distortions.
+        :param sdy: used to generate 3d surface for similar deformations.
          Surface is based on normal distribution.
         :type probability: Float
         :type grid_width: Integer
@@ -1177,7 +1177,7 @@ class Pipeline(object):
         if not 0 < probability <= 1:
             raise ValueError(Pipeline._probability_error_text)
         else:
-            self.add_operation(GaussianDistortion(probability=probability, grid_width=grid_width,
+            self.add_operation(GaussianDeformation(probability=probability, grid_width=grid_width,
                                                   grid_height=grid_height,
                                                   magnitude=magnitude, corner=corner,
                                                   method=method,  mex=mex,
@@ -1519,7 +1519,7 @@ class Pipeline(object):
             raise ValueError("The magnitude argument must be greater than 0 and less than or equal to 1.")
         else:
             self.add_operation(Skew(probability=probability,
-                                    skew_type="RANDOM",
+                                    skew_type="TILT",
                                     magnitude=magnitude))
 
     def shear(self, probability, max_shear_left, max_shear_right):
@@ -1653,7 +1653,20 @@ class Pipeline(object):
         else:
             self.add_operation(RandomColor(probability=probability, min_factor=min_factor,max_factor=max_factor))
 
-    def random_contrast(self,probability,min_factor,max_factor):
+    def random_translate(self, probability, x_shift, y_shift):
+        if not 0 < probability <= 1:
+            raise ValueError(Pipeline._probability_error_text)
+        else:
+            self.add_operation(Translation(probability=probability,x_shift=x_shift, y_shift=y_shift))
+
+    def random_stretch(self, probability, x_factor, y_factor):
+        if not 0 < probability <= 1:
+            raise ValueError(Pipeline._probability_error_text)
+        else:
+            self.add_operation(Stretch(probability=probability,x_factor=x_factor, y_factor=y_factor))
+
+    
+    def random_contrast(self,probability,factor):
         """
         Random change image contrast.
 
@@ -1667,12 +1680,10 @@ class Pipeline(object):
         """
         if not 0 < probability <= 1:
             raise ValueError(Pipeline._probability_error_text)
-        elif not 0 <= min_factor <= max_factor:
+        elif not 0 <= factor <= 2:
             raise ValueError("The min_factor must be between 0 and max_factor.")
-        elif not min_factor <= max_factor:
-            raise ValueError("The max_factor must be bigger min_factor.")
         else:
-            self.add_operation(RandomContrast(probability=probability, min_factor=min_factor,max_factor=max_factor))
+            self.add_operation(RandomContrast(probability=probability, factor=factor))
 
     def random_erasing(self, probability, rectangle_area):
         """
