@@ -2,12 +2,12 @@ import os
 import numpy as np
 import glob
 from PIL import Image
-mask_root_dir = "./4"
-image_root_dirs = ["./1", "./2", "./3", "./4"]
+mask_root_dir = "4"
+image_root_dirs = ["1", "2", "3", "4"]
 
 output_dir = "output"
 crop_dir = "crop"
-file_types = ['*.jpg', '*.bmp', '*.jpeg', '*.gif', '*.img', '*.png', '*.tiff', '*.tif', "*.npy"]
+file_types = ['.jpg', '.bmp', '.jpeg', '.gif', '.img', '.png', '.tiff', '.tif', ".npy"]
 
 class PillImage(object):
     def __init__(self, file, file_format = None, file_type = None):
@@ -83,10 +83,14 @@ def valid_bbox(size, bbox):
 
 def crop_dir_images(index, dir, bbox):
     image_dir = os.path.join(dir, output_dir)
-    list_of_files = os.listdir(image_dir)
+    list_of_files = []
+    for file in os.listdir(image_dir):
+        filename, extention = os.path.splitext(file)
+        if extention in file_types:
+            list_of_files.append(os.path.join(image_dir, file))
     if len(list_of_files) - 1 < index:
         return
-    basename = list_of_files[index]
+    basename = os.path.basename(list_of_files[index])
     if bbox is not None:
         pil_img = PillImage(os.path.join(image_dir, basename))
         img, size = pil_img.get_image(raw_type=True)
@@ -103,14 +107,16 @@ def crop_dir_images(index, dir, bbox):
 list_of_mask_files = []
 
 mask_directory = os.path.join(mask_root_dir, output_dir)
-for file_type in file_types:
-    list_of_mask_files.extend(glob.glob(os.path.join(os.path.abspath(mask_directory), file_type)))
+
+for file in os.listdir(os.path.join(mask_directory)):
+    filename, extention = os.path.splitext(file)
+    if extention in file_types:
+        list_of_mask_files.append(os.path.join(mask_directory, file))
 
 # loop all mask files
 for index, file in enumerate(list_of_mask_files):
     mask_img = PillImage(file)
-    bbox = mask_img.get_bbox()
-    basename = os.path.basename(file)
+    bbox = mask_img.get_bbox()    
     for dir in image_root_dirs:
         crop_dir_images(index, dir, bbox)
             
