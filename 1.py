@@ -29,14 +29,15 @@ for x in range(count):
     distomagnitude = random.uniform(-10, 10)
     p1.elastic_deformation(probability=1, grid_width=4, grid_height=4, magnitude=distomagnitude)
 
+    # random contrast
+    contrast_factor = random.uniform(0.3,1.7)
+    p1.random_contrast(probability=1, factor=contrast_factor)
+
     # random translate
     x_shift_factor = random.uniform(-0.2,0.2)
     y_shift_factor = random.uniform(-0.2,0.2)
     p1.random_translate(probability=1, x_shift=x_shift_factor, y_shift=y_shift_factor)
     
-    # random contrast
-    contrast_factor = random.uniform(0.3,1.7)
-    p1.random_contrast(probability=1, factor=contrast_factor)
     
     # random stretch
     x_factor = random.uniform(0.7, 1.3)
@@ -52,8 +53,8 @@ for x in range(count):
     p2.zoom(probability=1, min_factor=zoomfactor, max_factor=1.5)
     p2.shear(probability=1, max_shear_left=shearamount, max_shear_right=sheardir)
     p2.elastic_deformation(probability=1, grid_width=4, grid_height=4, magnitude=distomagnitude)
-    p2.random_translate(probability=1, x_shift=x_shift_factor, y_shift=y_shift_factor)
     p2.random_contrast(probability=1, factor=contrast_factor)
+    p2.random_translate(probability=1, x_shift=x_shift_factor, y_shift=y_shift_factor)
     p2.random_stretch(probability=1, x_factor=x_factor, y_factor=y_factor)
     p2.sample(count = x, multi_threaded=False)
 
@@ -64,8 +65,8 @@ for x in range(count):
     p3.zoom(probability=1, min_factor=zoomfactor, max_factor=1.5)
     p3.shear(probability=1, max_shear_left=shearamount, max_shear_right=sheardir)
     p3.elastic_deformation(probability=1, grid_width=4, grid_height=4, magnitude=distomagnitude)
-    p3.random_translate(probability=1, x_shift=x_shift_factor, y_shift=y_shift_factor)
     p3.random_contrast(probability=1, factor=contrast_factor)
+    p3.random_translate(probability=1, x_shift=x_shift_factor, y_shift=y_shift_factor)
     p3.random_stretch(probability=1, x_factor=x_factor, y_factor=y_factor)
     p3.sample(count = x, multi_threaded=False)
 
@@ -77,6 +78,6 @@ for x in range(count):
     p4.shear(probability=1, max_shear_left=shearamount, max_shear_right=sheardir)
     p4.elastic_deformation(probability=1, grid_width=4, grid_height=4, magnitude=distomagnitude)
     p4.random_translate(probability=1, x_shift=x_shift_factor, y_shift=y_shift_factor)
-    p4.random_contrast(probability=1, factor=contrast_factor)
+    # p4.random_contrast(probability=1, factor=contrast_factor)
     p4.random_stretch(probability=1, x_factor=x_factor, y_factor=y_factor)
     p4.sample(count=x, multi_threaded=False)
